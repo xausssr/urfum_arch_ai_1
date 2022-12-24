@@ -7,4 +7,4 @@ INFERENCE_TIMEOUT = 1
 # device for calc
 DEVICE = "cpu"
 # Host
-HOST = "158.160.41.29"
+HOST = "0.0.0.0"

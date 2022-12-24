@@ -1,6 +1,10 @@
 let TASK_ID = "empty"
 let INTERVAL_HOLDER = null;
 let MAIN_RESPONSE = "";
+let BASE_URL = document.URL
+if (BASE_URL.slice(-1) !== "/"){
+    BASE_URL = BASE_URL + "/"
+}
 
 function switch_layout(state){
     switch (state){
@@ -36,7 +40,7 @@ function send_data(){
     
     $.ajax({
         type: "POST",
-        url: "http://127.0.0.1:5000/send_text",
+        url: BASE_URL + "send_text",
         data: data,
         processData: false,
         contentType: "text/plain",
@@ -52,7 +56,7 @@ function send_data(){
 function check_result(){
     $.ajax({
         type: "GET",
-        url: 'http://127.0.0.1:5000/get_result?id=' + TASK_ID,
+        url: BASE_URL + 'get_result?id=' + TASK_ID,
         success: function(response, status, code) {
             if (status === "success"){
                 document.getElementById("outputArea").value = response;
