@@ -22,7 +22,7 @@ def __init_model():
 
     model_name = "IlyaGusev/rugpt3medium_sum_gazeta"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name).to("cuda:0")
+    model = AutoModelForCausalLM.from_pretrained(model_name).to(DEVICE)
     return model, tokenizer
 
 QUEUE = dict()
@@ -59,7 +59,7 @@ def predict(result_id: str) -> None:
         truncation=True
     )["input_ids"]
     input_ids = text_tokens + [tokinezer.sep_token_id]
-    input_ids = torch.LongTensor([input_ids]).to("cuda:0")
+    input_ids = torch.LongTensor([input_ids]).to(DEVICE)
 
     output_ids = model.generate(
         input_ids=input_ids,

@@ -4,3 +4,6 @@ DEBUG = False
 DELETE_TIMEOUT = 5
 # check new task every seconds
 INFERENCE_TIMEOUT = 1
+# device for calc
+DEVICE = "cpu"
+
