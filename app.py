@@ -5,7 +5,7 @@ from hashlib import sha256
 
 import torch
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, render_template, request
+from flask import Flask, Response, render_template, request
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from config import *
@@ -78,7 +78,8 @@ def predict(result_id: str) -> None:
 
 def get_next_id():
     if len(QUEUE) > 0:
-        print(f"get new id...")
+        if DEBUG:
+            print(f"get new id...")
         ids = [x for x in QUEUE.keys()]
         if len(ids) > 0:
             predict(ids[0])
@@ -103,7 +104,7 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(func=get_next_id, trigger="interval", seconds=INFERENCE_TIMEOUT)
 scheduler.start()
 
-app = Flask(__name__)
+app = Flask("summator")
 # fix to russian symbols
 app.config['JSON_AS_ASCII'] = False
 
@@ -113,7 +114,7 @@ def main_page():
 
 # dev page for curl
 @app.route("/send_text", methods=["POST"])
-def dev_page():
+def send_text():
     """API endpoint to proccess text from cli. Need to send raw text in POST"""
 
     clear_results()
@@ -122,9 +123,9 @@ def dev_page():
         result_id =  sha256(datetime.datetime.now().strftime('%Y%m%d%H%M%S%f').encode('utf-8')).hexdigest()
         QUEUE[result_id] = datetime.datetime.now()
         codecs.open(f"./cache/{result_id}", "w", "utf-8").write(data)
-        return result_id
+        return Response(result_id, status=200)
     else:
-        return "Non-valid request"
+        return Response("Non-valid request", status=400)
 
 
 @app.route("/get_result", methods=["GET"])
@@ -134,7 +135,7 @@ def get_results():
     if request.args.get('id'):
         result_id = request.args.get('id')
         if result_id not in QUEUE:
-            return f"No results for {result_id}, may be clean by timer? try one more time"
+            return Response(f"No results for {result_id}, may be clean by timer? try one more time", status=410)
         
         if f"{result_id}_result" in os.listdir("./cache"):
             result = codecs.open(f"./cache/{result_id}_result", "r", "utf-8").read()
@@ -143,13 +144,13 @@ def get_results():
             os.remove(f"./cache/{result_id}")
             if DEBUG:
                 print(f"delete for {result_id}, cause: user get result")
-            return result
+            return Response(result, status=200)
         else:
             clear_results()
-            return "You text is not processed, please wait"
+            return Response("You text is not processed, please wait", status=204)
     else:
         clear_results()
-        return "Add parameter 'id'"
+        return Response("Add parameter 'id'", status=400)
 
-# 
-# summary = predict(data)
+if __name__ == '__main__':
+    app.run(debug = False)
