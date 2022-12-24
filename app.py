@@ -8,11 +8,13 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template, request
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-# initialisation of server
-if not os.path.exists("./cahche"):
-    os.mkdir("./cahche")
+from config import *
 
-if not os.path.exists("./cahche/cpu_available"):
+# initialisation of server
+if not os.path.exists("./cache"):
+    os.mkdir("./cache")
+
+if not os.path.exists("./cache/cpu_available"):
     codecs.open("./cache/cpu_available", "w", "utf-8").write("y")
 
 # init insatance for model
@@ -39,10 +41,14 @@ def predict(result_id: str) -> None:
     if f"{result_id}_result" in os.listdir("./cache"):
         return None
 
-    print(f"compute for id: {result_id}")
+    if DEBUG:
+        print(f"compute for id: {result_id}")
+    
     codecs.open("./cache/cpu_available", "w", "utf-8").write("n")
     text = codecs.open(f"./cache/{result_id}", "r", "utf-8").read()
-    print(f"start for {result_id}")
+    
+    if DEBUG:
+        print(f"start for {result_id}")
 
     model, tokinezer = __init_model()
     text_tokens = tokinezer(
@@ -66,8 +72,9 @@ def predict(result_id: str) -> None:
     summary = summary.split(tokinezer.eos_token)[0]
     codecs.open(f"./cache/{result_id}_result", "w", "utf-8").write(summary)
     codecs.open("./cache/cpu_available", "w", "utf-8").write("y")
-    print(f"complete for {result_id}")
-    return None
+    
+    if DEBUG:
+        print(f"complete for {result_id}")
 
 def get_next_id():
     if len(QUEUE) > 0:
@@ -80,10 +87,12 @@ def clear_results():
     for n in os.listdir("./cache/"):
         if n != "cpu_available" and "_result" not in n:
             now = datetime.datetime.now()
-            if now - QUEUE[n] > datetime.timedelta(seconds=50):
+            if now - QUEUE[n] > datetime.timedelta(minutes=DELETE_TIMEOUT):
                 del QUEUE[n]
                 os.remove(f"./cache/{n}_result")
                 os.remove(f"./cache/{n}")
+                if DEBUG:
+                    print(f"delete for {n}, cause: timeout")
 
 
 # next id to predict
@@ -91,7 +100,7 @@ NEXT_ID = None
 # Allready compute flag
 # run predictions on backgroud
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=get_next_id, trigger="interval", seconds=10)
+scheduler.add_job(func=get_next_id, trigger="interval", seconds=INFERENCE_TIMEOUT)
 scheduler.start()
 
 app = Flask(__name__)
@@ -132,7 +141,8 @@ def get_results():
             del QUEUE[result_id]
             os.remove(f"./cache/{result_id}_result")
             os.remove(f"./cache/{result_id}")
-            print(f"delete for {result_id}, cause: user get result")
+            if DEBUG:
+                print(f"delete for {result_id}, cause: user get result")
             return result
         else:
             clear_results()
