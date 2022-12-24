@@ -41,6 +41,7 @@ $.ajax({
         contentType: "text/plain",
         success: function(data, status, code) {...},
         error: function(status) {...}
+})
 ```
 
 В ответ сервер отдаст токен вида `ac03e5aa57321b981ebc98d6a0ce027662b5ccc88998d7089550b272d3a6c89f` **(ID)**, по
@@ -71,6 +72,7 @@ $.ajax({
         error: function(response, status){
             alert("Error: " + response + " " + status);
         }
+})
 ```
 
 Обратите внимание, что только `200` response code содержит данные с аннотацией, `204` - говорит о том, что текст с данным **ID** либо в очереди, либо вычисляется.
