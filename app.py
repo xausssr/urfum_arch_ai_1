@@ -153,4 +153,4 @@ def get_results():
         return Response("Add parameter 'id'", status=400)
 
 if __name__ == '__main__':
-    app.run(debug = False)
+    app.run(host=HOST, debug = False)

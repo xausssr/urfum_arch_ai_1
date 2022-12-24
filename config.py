@@ -6,4 +6,5 @@ DELETE_TIMEOUT = 5
 INFERENCE_TIMEOUT = 1
 # device for calc
 DEVICE = "cpu"
-
+# Host
+HOST = "158.160.41.29"
