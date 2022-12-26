@@ -14,5 +14,5 @@
     #assert title == str
 x = input()
 
-def light_test(x):
+def test_light(x):
     assert x == str
