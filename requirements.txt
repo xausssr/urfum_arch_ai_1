@@ -1,8 +1,9 @@
-streamlit==1.14.1
 torch==1.12.1
 transformers==4.24.0
 huggingface==0.0.1
 huggingface-hub==0.10.1
 accelerate==0.14.0
 Flask==2.0.0
+pytest=7.2.1
+Werkzeug==2.0.3
 APScheduler
