@@ -1,19 +1,20 @@
-from fastapi.testclient import TestClient
-from main import app
-from main import app
-
-client = TestClient(app)
+from app import app
 
 
-def test_post():
+def test_main_page():
+    response = app.test_client().get('/')
+    assert response.status_code == 200
+    assert response.content_type == 'text/html; charset=utf-8'
+
+
+def test_send_text():
+    response = app.test_client().post('/send_text')
+    assert response.status_code == 200
+    assert response.content_length == 64
+    global id
+    id = response.get_data(as_text=True)
     
-    article = client.post("/http://51.250.4.66:5000/send_text")
-    assert article == str
 
-def test_get():
-    title = client.get("http://51.250.4.66:5000/get_result")
-    assert title == str
-#x = input()
-
-#def test_light(x):
-    #assert x == str
+def test_get_page():
+    response = app.test_client().get('/get_result?id='+str(id))
+    assert response.status_code == 204
