@@ -8,7 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, Response, render_template, request
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from config import *
+from config import DEBUG, DELETE_TIMEOUT, INFERENCE_TIMEOUT, DEVICE, HOST
 
 # initialisation of server
 if not os.path.exists("./cache"):
@@ -17,15 +17,17 @@ if not os.path.exists("./cache"):
 if not os.path.exists("./cache/cpu_available"):
     codecs.open("./cache/cpu_available", "w", "utf-8").write("y")
 
+
 # init insatance for model
 def __init_model():
-
     model_name = "IlyaGusev/rugpt3medium_sum_gazeta"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name).to(DEVICE)
     return model, tokenizer
 
+
 QUEUE = dict()
+
 
 def predict(result_id: str) -> None:
     """Predict summary from given text
@@ -37,13 +39,13 @@ def predict(result_id: str) -> None:
     cpu_available = codecs.open("./cache/cpu_available", "r").read()
     if cpu_available == "n":
         return None
-
+    
     if f"{result_id}_result" in os.listdir("./cache"):
         return None
-
+    
     if DEBUG:
         print(f"compute for id: {result_id}")
-    
+        
     codecs.open("./cache/cpu_available", "w", "utf-8").write("n")
     text = codecs.open(f"./cache/{result_id}", "r", "utf-8").read()
     
@@ -54,13 +56,12 @@ def predict(result_id: str) -> None:
     text_tokens = tokinezer(
         text,
         max_length=600,
-        add_special_tokens=False, 
+        add_special_tokens=False,
         padding=False,
         truncation=True
     )["input_ids"]
     input_ids = text_tokens + [tokinezer.sep_token_id]
     input_ids = torch.LongTensor([input_ids]).to(DEVICE)
-
     output_ids = model.generate(
         input_ids=input_ids,
         no_repeat_ngram_size=4
@@ -76,14 +77,16 @@ def predict(result_id: str) -> None:
     if DEBUG:
         print(f"complete for {result_id}")
 
+        
 def get_next_id():
     if len(QUEUE) > 0:
         if DEBUG:
-            print(f"get new id...")
+            print("get new id...")
         ids = [x for x in QUEUE.keys()]
         if len(ids) > 0:
             predict(ids[0])
 
+            
 def clear_results():
     for n in os.listdir("./cache/"):
         if n != "cpu_available" and "_result" not in n:
@@ -104,9 +107,11 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(func=get_next_id, trigger="interval", seconds=INFERENCE_TIMEOUT)
 scheduler.start()
 
+
 app = Flask("summator")
 # fix to russian symbols
 app.config['JSON_AS_ASCII'] = False
+
 
 @app.route("/")
 def main_page():
@@ -116,7 +121,6 @@ def main_page():
 @app.route("/send_text", methods=["POST"])
 def send_text():
     """API endpoint to proccess text from cli. Need to send raw text in POST"""
-
     clear_results()
     if request.method == 'POST':
         data = request.data.decode("utf-8")
@@ -136,7 +140,6 @@ def get_results():
         result_id = request.args.get('id')
         if result_id not in QUEUE:
             return Response(f"No results for {result_id}, may be clean by timer? try one more time", status=410)
-        
         if f"{result_id}_result" in os.listdir("./cache"):
             result = codecs.open(f"./cache/{result_id}_result", "r", "utf-8").read()
             del QUEUE[result_id]
@@ -152,5 +155,6 @@ def get_results():
         clear_results()
         return Response("Add parameter 'id'", status=400)
 
+    
 if __name__ == '__main__':
     app.run(host=HOST, debug = False)
