@@ -10,9 +10,9 @@ warnings.filterwarnings("ignore", category=UserWarning)
 PATH = os.path.dirname(os.path.realpath(__file__))
 
 parser = argparse.ArgumentParser(
-    prog = 'AI Text Annotation',
-    description = 'Annotate (summarize) russian news post',
-    epilog = 'You need GPU with at least 8 GB, by default inference on CPU'
+    prog='AI Text Annotation',
+    description='Annotate (summarize) russian news post',
+    epilog='You need GPU with at least 8 GB, by default inference on CPU'
 )
 
 parser.add_argument('--file', help="absolute path to file with text (*.txt in cp-1251)", required=False)
@@ -38,7 +38,7 @@ model = AutoModelForCausalLM.from_pretrained(model_name).to(args.device)
 text_tokens = tokenizer(
     article_text,
     max_length=600,
-    add_special_tokens=False, 
+    add_special_tokens=False,
     padding=False,
     truncation=True
 )["input_ids"]
