@@ -68,11 +68,11 @@ def predict(result_id: str) -> None:
     summary = summary.split(tokinezer.eos_token)[0]
     codecs.open(f"./cache/{result_id}_result", "w", "utf-8").write(summary)
     codecs.open("./cache/cpu_available", "w", "utf-8").write("y")
-    
+
     if DEBUG:
         print(f"complete for {result_id}")
 
-      
+
 def get_next_id():
     if len(QUEUE) > 0:
         if DEBUG:
@@ -81,7 +81,7 @@ def get_next_id():
         if len(ids) > 0:
             predict(ids[0])
 
-           
+      
 def clear_results():
     for n in os.listdir("./cache/"):
         if n != "cpu_available" and "_result" not in n:
@@ -120,7 +120,7 @@ def send_text():
     clear_results()
     if request.method == 'POST':
         data = request.data.decode("utf-8")
-        result_id =  sha256(datetime.datetime.now().strftime('%Y%m%d%H%M%S%f').encode('utf-8')).hexdigest()
+        result_id = sha256(datetime.datetime.now().strftime('%Y%m%d%H%M%S%f').encode('utf-8')).hexdigest()
         QUEUE[result_id] = datetime.datetime.now()
         codecs.open(f"./cache/{result_id}", "w", "utf-8").write(data)
         return Response(result_id, status=200)
@@ -151,6 +151,6 @@ def get_results():
         clear_results()
         return Response("Add parameter 'id'", status=400)
 
-    
+
 if __name__ == '__main__':
-    app.run(host=HOST, debug = False)
+    app.run(host=HOST, debug=False)
