@@ -39,19 +39,14 @@ def predict(result_id: str) -> None:
     cpu_available = codecs.open("./cache/cpu_available", "r").read()
     if cpu_available == "n":
         return None
-    
     if f"{result_id}_result" in os.listdir("./cache"):
         return None
-    
     if DEBUG:
         print(f"compute for id: {result_id}")
-        
     codecs.open("./cache/cpu_available", "w", "utf-8").write("n")
     text = codecs.open(f"./cache/{result_id}", "r", "utf-8").read()
-    
     if DEBUG:
         print(f"start for {result_id}")
-
     model, tokinezer = __init_model()
     text_tokens = tokinezer(
         text,
@@ -77,7 +72,7 @@ def predict(result_id: str) -> None:
     if DEBUG:
         print(f"complete for {result_id}")
 
-        
+      
 def get_next_id():
     if len(QUEUE) > 0:
         if DEBUG:
@@ -86,7 +81,7 @@ def get_next_id():
         if len(ids) > 0:
             predict(ids[0])
 
-            
+           
 def clear_results():
     for n in os.listdir("./cache/"):
         if n != "cpu_available" and "_result" not in n:
@@ -116,6 +111,7 @@ app.config['JSON_AS_ASCII'] = False
 @app.route("/")
 def main_page():
     return render_template("main.html")
+
 
 # dev page for curl
 @app.route("/send_text", methods=["POST"])
