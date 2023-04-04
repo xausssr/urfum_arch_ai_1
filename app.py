@@ -81,7 +81,7 @@ def get_next_id():
         if len(ids) > 0:
             predict(ids[0])
 
- 
+
 def clear_results():
     for n in os.listdir("./cache/"):
         if n != "cpu_available" and "_result" not in n:
