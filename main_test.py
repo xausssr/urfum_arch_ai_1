@@ -13,7 +13,7 @@ def test_send_text():
     assert response.content_length == 64
     global id
     id = response.get_data(as_text=True)
-    
+
 
 def test_get_page():
     response = app.test_client().get('/get_result?id='+str(id))
